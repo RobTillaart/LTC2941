@@ -39,8 +39,8 @@ void setup()
 
   Serial.print("getCharge: \t");
   //  save old value to restore
-  int16_t val;
-  int16_t nval;
+  uint16_t val;
+  uint16_t nval;
   LTC.getCharge(val);
   val ^= 0xFFFF;
   LTC.setCharge(val);

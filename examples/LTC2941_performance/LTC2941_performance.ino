@@ -32,7 +32,7 @@ void setup()
   {
     Wire.setClock(speed);
     uint32_t start = micros();
-    int16_t charge;
+    uint16_t charge;
     LTC.getCharge(charge);
     uint32_t stop = micros();
     Serial.print(speed);

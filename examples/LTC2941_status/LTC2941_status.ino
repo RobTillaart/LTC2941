@@ -32,7 +32,7 @@ void setup()
 
 void loop()
 {
-  int16_t charge;
+  uint16_t charge;
   LTC.getCharge(charge);
   uint8_t status;
   LTC.getStatus(status);

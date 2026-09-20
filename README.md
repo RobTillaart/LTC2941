@@ -225,16 +225,17 @@ See datasheet page 10-11 for details.
 #### Must
 
 - improve documentation
+  - how to calibrate (resistor, prescaler, ...)
 - get hardware to test
   - verify API
 - improve API
   - configure battery capacity in mAh
-  - percentage full
+  - configure percentages full
+  - calibrate support
 
 #### Should
 
 - investigate datasheet in detail
-  - missing core functions
   - config support, based upon page 10-11
 
 #### Could
