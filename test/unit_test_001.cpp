@@ -43,6 +43,7 @@ unittest(test_constants_error)
   assertEqual(0x10, LTC2941_NOT_READY     );
   assertEqual(0x11, LTC2941_REQUEST_ERROR1);
   assertEqual(0x12, LTC2941_REQUEST_ERROR2);
+  assertEqual(0x13, LTC2941_CONTROL_ERROR );
 }
 
 

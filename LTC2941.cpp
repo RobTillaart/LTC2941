@@ -1,8 +1,8 @@
 //
 //    FILE: LTC2941.cpp
 //  AUTHOR: Rob Tillaart
-//    DATE: 2026-09-18
 // VERSION: 0.1.0
+//    DATE: 2026-09-18
 // PURPOSE: Arduino library for the LTC2941 battery charge and discharge (Coulomb) meter.
 //     URL: https://github.com/RobTillaart/LTC2941
 
@@ -10,14 +10,14 @@
 #include "LTC2941.h"
 
 
-const uint8_t LTC2941_REG_STATUS      = 0x00;
-const uint8_t LTC2941_REG_CONTROL     = 0x01;
-const uint8_t LTC2941_REG_CHARGE_MSB  = 0x02;
-const uint8_t LTC2941_REG_CHARGE_LSB  = 0x03;
-const uint8_t LTC2941_REG_TH_HIGH_MSB = 0x04;
-const uint8_t LTC2941_REG_TH_HIGH_LSB = 0x05;
-const uint8_t LTC2941_REG_TH_LOW_MSB  = 0x06;
-const uint8_t LTC2941_REG_TH_LOW_LSB  = 0x07;
+const uint8_t LTC2941_REG_STATUS             = 0x00;
+const uint8_t LTC2941_REG_CONTROL            = 0x01;
+const uint8_t LTC2941_REG_CHARGE_MSB         = 0x02;
+const uint8_t LTC2941_REG_CHARGE_LSB         = 0x03;
+const uint8_t LTC2941_REG_CHARGE_TH_HIGH_MSB = 0x04;
+const uint8_t LTC2941_REG_CHARGE_TH_HIGH_LSB = 0x05;
+const uint8_t LTC2941_REG_CHARGE_TH_LOW_MSB  = 0x06;
+const uint8_t LTC2941_REG_CHARGE_TH_LOW_LSB  = 0x07;
 
 
 LTC2941::LTC2941(TwoWire *wire)
@@ -117,7 +117,7 @@ bool LTC2941::getControl( uint8_t &ALCC,
 //
 //  CHARGE
 //
-bool LTC2941::setCharge(int16_t charge)
+bool LTC2941::setCharge(uint16_t charge)
 {
   uint8_t value[2];
   value[0] = charge >> 8;
@@ -126,7 +126,7 @@ bool LTC2941::setCharge(int16_t charge)
   return (_error == LTC2941_OK);
 }
 
-bool LTC2941::getCharge(int16_t &charge)
+bool LTC2941::getCharge(uint16_t &charge)
 {
   uint8_t value[2] = {0, 0};
   _read(LTC2941_REG_CHARGE_MSB, value, 2);
@@ -139,36 +139,36 @@ bool LTC2941::getCharge(int16_t &charge)
 //
 //  THRESHOLD
 //
-bool LTC2941::setThresholdHigh(int16_t th)
+bool LTC2941::setThresholdHigh(uint16_t th)
 {
   uint8_t value[2];
   value[0] = th >> 8;
   value[1] = th & 0xFF;
-  _write(LTC2941_REG_TH_HIGH_MSB, value, 2);
+  _write(LTC2941_REG_CHARGE_TH_HIGH_MSB, value, 2);
   return (_error == LTC2941_OK);
 }
 
-bool LTC2941::getThresholdHigh(int16_t &th)
+bool LTC2941::getThresholdHigh(uint16_t &th)
 {
   uint8_t value[2];
-  _read(LTC2941_REG_CHARGE_MSB, value, 2);
+  _read(LTC2941_REG_CHARGE_TH_HIGH_MSB, value, 2);
   th = (value[0] << 8) + value[1];
   return (_error == LTC2941_OK);
 }
 
-bool LTC2941::setThresholdLow(int16_t th)
+bool LTC2941::setThresholdLow(uint16_t th)
 {
   uint8_t value[2];
   value[0] = th >> 8;
   value[1] = th & 0xFF;
-  _write(LTC2941_REG_TH_LOW_MSB, value, 2);
+  _write(LTC2941_REG_CHARGE_TH_LOW_MSB, value, 2);
   return (_error == LTC2941_OK);
 }
 
-bool LTC2941::getThresholdLow(int16_t &th)
+bool LTC2941::getThresholdLow(uint16_t &th)
 {
   uint8_t value[2];
-  _read(LTC2941_REG_TH_LOW_MSB, value, 2);
+  _read(LTC2941_REG_CHARGE_TH_LOW_MSB, value, 2);
   th = (value[0] << 8) + value[1];
   return (_error == LTC2941_OK);
 }

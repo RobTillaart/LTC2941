@@ -18,6 +18,8 @@ Arduino library for the LTC2941 battery charge and discharge (Coulomb) meter.
 
 **Experimental**  **Work in progress**
 
+Read the datasheet as this library is work in progress.
+
 This library is to use the LTC2941 Coulomb meter.
 The LTC2941 indicates the accumulated charge and discharge of a battery
 so you can see how "full" they are.
@@ -155,7 +157,7 @@ TODO: implement and run performance sketch on hardware.
 - **LTC2941(TwoWire \*wire = &Wire)** optional select I2C bus.
 - **bool begin()** checks if device is visible on the I2C bus.
 - **bool isConnected()** Checks if device address can be found on I2C bus.
-- **uint8_t getAddress()** Returns the fixed address 0x2A (42).
+- **uint8_t getAddress()** Returns the fixed address 0x64 (100).
 
 
 ### Status and control
@@ -166,8 +168,8 @@ See datasheet for details.
 
 Status byte, see datasheet.
 
-|  bit  |  description        |
-|:-----:|:--------------------|
+|  bit  |  description        |  notes  |
+|:-----:|:--------------------|:--------|
 |   0   |  undervoltage alert |
 |   1   |  Vbattery alert     |
 |   2   |  charge alert low   |
@@ -175,7 +177,7 @@ Status byte, see datasheet.
 |   4   |  not used, always 0 |
 |   5   |  under/overflow     |
 |   6   |  not used, always 0 |
-|   7   |  chip ID, always 1  |
+|   7   |  chip ID, always 1  |  LTC2942 returns 1
 
 
 - **bool setControl(uint8_t control)**
@@ -197,12 +199,12 @@ Control fields, see datasheet.
 
 See datasheet page 10-11 for details.
 
-- **bool setCharge(int16_t charge)**
-- **bool getCharge(int16_t &charge)**
-- **bool setChargeThresholdHigh(int16_t th)**
-- **bool getChargeThresholdHigh(int16_t &th)**
-- **bool setChargeThresholdLow(int16_t th)**
-- **bool getChargeThresholdLow(int16_t &th)**
+- **bool setCharge(uint16_t charge)**
+- **bool getCharge(uint16_t &charge)**
+- **bool setChargeThresholdHigh(uint16_t th)**
+- **bool getChargeThresholdHigh(uint16_t &th)**
+- **bool setChargeThresholdLow(uint16_t th)**
+- **bool getChargeThresholdLow(uint16_t &th)**
 
 
 ### Debug
@@ -215,6 +217,7 @@ See datasheet page 10-11 for details.
 |   0x10  |  LTC2941_NOT_READY
 |   0x11  |  LTC2941_REQUEST_ERROR1
 |   0x12  |  LTC2941_REQUEST_ERROR2
+|   0x13  |  LTC2941_CONTROL_ERROR
 
 
 ## Future
@@ -223,6 +226,10 @@ See datasheet page 10-11 for details.
 
 - improve documentation
 - get hardware to test
+  - verify API
+- improve API
+  - configure battery capacity in mAh
+  - percentage full
 
 #### Should
 

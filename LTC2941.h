@@ -62,14 +62,14 @@ public:
 
 
   //       CHARGE
-  bool     setCharge(int16_t charge);
-  bool     getCharge(int16_t &charge);
+  bool     setCharge(uint16_t charge);
+  bool     getCharge(uint16_t &charge);
 
   //       THRESHOLD
-  bool     setThresholdHigh(int16_t th);
-  bool     getThresholdHigh(int16_t &th);
-  bool     setThresholdLow(int16_t th);
-  bool     getThresholdLow(int16_t &th);
+  bool     setThresholdHigh(uint16_t th);
+  bool     getThresholdHigh(uint16_t &th);
+  bool     setThresholdLow(uint16_t th);
+  bool     getThresholdLow(uint16_t &th);
 
 
   //       DEBUG
