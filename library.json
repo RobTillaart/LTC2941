@@ -1,7 +1,7 @@
 {
   "name": "LTC2941",
   "keywords": "",
-  "description": "Arduino library for the LTC2941 Coulomb meter",
+  "description": "Arduino library for the LTC2941 battery charge and discharge (Coulomb) meter.",
   "authors":
   [
     {

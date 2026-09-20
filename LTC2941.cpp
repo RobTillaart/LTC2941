@@ -3,7 +3,7 @@
 //  AUTHOR: Rob Tillaart
 //    DATE: 2026-09-18
 // VERSION: 0.1.0
-// PURPOSE: Arduino library for the LTC2941 Coulomb meter
+// PURPOSE: Arduino library for the LTC2941 battery charge and discharge (Coulomb) meter.
 //     URL: https://github.com/RobTillaart/LTC2941
 
 

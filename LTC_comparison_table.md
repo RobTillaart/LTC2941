@@ -4,9 +4,9 @@ Disclaimer: This is an indicative table.
 Read datasheet of devices for details.
 
 
-## Comparison table LTC Coulomb sensors
+## Comparison table LTCxxxx Coulomb sensors
 
-Comparison of LTCxxxx Battery Gas Gauge Coulomb sensors.
+Comparison of LTCxxxx Battery charge and discharge (Coulomb) meters.
 
 
 |                           |  2941  |  2942  |  2943  |  2944  |  4150  |
@@ -35,7 +35,7 @@ The LTC2943 / LTC2944 is a superset of the LTC2941.
 
 The LTC2942 has other register mapping.
 
-The LTC4150 is a complete different type device, mentioned for completeness.
+The LTC4150 is a different type of device, mentioned for completeness.
 
 
 ## Other Charging devices
