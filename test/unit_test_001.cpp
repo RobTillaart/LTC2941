@@ -62,7 +62,7 @@ unittest(test_constructor)
   LTC2941 LTC;
 
   assertEqual(0x64, LTC.getAddress());
-  asserEqual(LTC2941_OK, LTC.getLastError());
+  assertEqual(LTC2941_OK, LTC.getLastError());
 }
 
 
