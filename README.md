@@ -31,11 +31,17 @@ The device allows to set a low/high charge threshold.
 These can trigger an alarm when the battery is nearly full / empty.
 The device has a status register that shows the different alarms supported.
 
-The LTC2941 can be configured. 
+The LTC2941 can be configured.
 Read the datasheet to understand how to make a correct workable configuration
 for your project setup.
 
 Accuracy: ~1%
+
+|    type    |  temperature  |
+|:----------:|:--------------|
+|  LTC2941C  |  0°C to 70°C
+|  LTC2941I  |  –40°C to 85°C
+
 
 **Library is not tested with hardware yet.**
 
@@ -46,6 +52,12 @@ Feedback as always is welcome.
 
 _Do not apply this product to safety protection devices or emergency stop equipment,
 and any other applications that may cause personal injury due to the product's failure._
+
+
+### Calibration
+
+Preliminary, to be tested.
+
 
 
 ### Hardware
@@ -65,11 +77,11 @@ Check datasheet!
 
 ### Compatibles
 
-The LTC2941 comes at least in two versions. 
+The LTC2941 comes at least in two versions.
 Difference is the working temperature range.
 
-The LTC2942 is partial compatible.  
-The LTC2943 and LTC2944 are a superset of the LTC2941 and are expected 
+The LTC2942 is partial compatible.
+The LTC2943 and LTC2944 are a superset of the LTC2941 and are expected
 to work with this library. Use at own risk.
 
 
@@ -155,9 +167,33 @@ TODO: implement and run performance sketch on hardware.
 ### Constructor
 
 - **LTC2941(TwoWire \*wire = &Wire)** optional select I2C bus.
-- **bool begin()** checks if device is visible on the I2C bus.
+- **bool begin(float mAh, float RSense = 0.050f)**
+tralala
+Finally it checks if the device address is visible on the I2C bus.
 - **bool isConnected()** Checks if device address can be found on I2C bus.
 - **uint8_t getAddress()** Returns the fixed address 0x64 (100).
+
+Note: The user has to make sure that: ```RSense < 50mV / Imax```.
+The library does not check this.
+
+
+### Charge
+
+See datasheet page 10-11 for details.
+
+Functions return false in case of an error.
+
+- **bool setCharge(uint16_t charge)** raw register access.
+- **bool getCharge(uint16_t &charge)** raw register access.
+- **bool setCharge(float charge)** charge in mAh, wrapper.
+- **bool getCharge(float &charge)** charge in mAh, wrapper.
+- **bool getPercentageFull(float &percentage)** return 0..100%,
+compares with mAh parameter from begin().
+- **float getQLSB()** charge in mAh of single bit.
+Conversion factor determined by RSense and mAh from **begin()**
+
+
+**BELOW THIS LINE IS WORK IN PROGRESS - NOT TESTED**
 
 
 ### Status and control
@@ -170,14 +206,14 @@ Status byte, see datasheet.
 
 |  bit  |  description        |  notes  |
 |:-----:|:--------------------|:--------|
-|   0   |  undervoltage alert |
+|   0   |  underVoltage alert |
 |   1   |  Vbattery alert     |
 |   2   |  charge alert low   |
 |   3   |  charge alert high  |
 |   4   |  not used, always 0 |
 |   5   |  under/overflow     |
 |   6   |  not used, always 0 |
-|   7   |  chip ID, always 1  |  LTC2942 returns 1
+|   7   |  chip ID, always 1  |  LTC2942 returns 0
 
 
 - **bool setControl(uint8_t control)**
@@ -192,24 +228,37 @@ Control fields, see datasheet.
 |   0   |  Shutdown           |   0..1  |
 |  1-2  |  AL/CC configure    |   0..2  |  value 3 not allowed.
 |  3-5  |  Coulomb pre-scaler |   0..7  |  maps to 1..128
-|  6-7  |  battery alert      |   0..3  | 
+|  6-7  |  battery alert      |   0..3  |
 
 
-### Charge
+### Calibrate
 
-See datasheet page 10-11 for details.
+TODO elaborate.
 
-- **bool setCharge(uint16_t charge)**
-- **bool getCharge(uint16_t &charge)**
-- **bool setChargeThresholdHigh(uint16_t th)**
-- **bool getChargeThresholdHigh(uint16_t &th)**
-- **bool setChargeThresholdLow(uint16_t th)**
-- **bool getChargeThresholdLow(uint16_t &th)**
+About calibration...
+- load accu full
+- setCharge(x.y mAh)
+
+
+### Thresholds
+
+TODO elaborate
+
+- **bool setRawThresholdHigh(uint16_t th)**
+- **bool getRawThresholdHigh(uint16_t &th)**
+- **bool setRawThresholdLow(uint16_t th)**
+- **bool getRawThresholdLow(uint16_t &th)**
+- **bool setThresholdHigh(float th);
+- **bool getThresholdHigh(float &th);
+- **bool setThresholdLow(float th);
+- **bool getThresholdLow(float &th);
 
 
 ### Debug
 
 - **int getLastError()** returns last error of low level communication.
+- **uint8_t getPrescaler()** idem
+
 
 |  value  |  error code  |
 |:-------:|:-------------|
@@ -229,6 +278,7 @@ See datasheet page 10-11 for details.
 - get hardware to test
   - verify API
 - improve API
+  - units of getCharge?
   - configure battery capacity in mAh
   - configure percentages full
   - calibrate support
@@ -243,7 +293,7 @@ See datasheet page 10-11 for details.
 - improve control API
   - add constants per field. (enum?)
 - investigate ARA call
-  - alert response ADDRESS 0x0C 
+  - alert response ADDRESS 0x0C
   - page 13 bottom.
 - add examples
 - add unit tests (if possible)

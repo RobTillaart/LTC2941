@@ -6,7 +6,8 @@
 // PURPOSE: Arduino library for the LTC2941 battery charge and discharge (Coulomb) meter.
 //     URL: https://github.com/RobTillaart/LTC2941
 //
-//  Read the datasheet for the details
+//
+//  READ THE DATASHEET FOR THE DETAILS
 
 
 #include "Arduino.h"
@@ -38,9 +39,24 @@ class LTC2941
 public:
   LTC2941(TwoWire *wire = &Wire);
 
-  bool     begin();
+  //  RSense > 0.005 Ohm.
+  //  RSense < 50 mVolt / Imax  TODO - readme
+  //  mAh is the capacity of the battery.
+  bool     begin(float RSense, float mAh);
   bool     isConnected();
   uint8_t  getAddress();
+
+
+  //       below = register level access, use with care.
+
+  //       CHARGE
+  //       raw values have to be multiplied/divided by QLSB.
+  bool     setRawCharge(uint16_t raw);
+  bool     getRawCharge(uint16_t &raw);
+  bool     setCharge(float charge);
+  bool     getCharge(float &charge);
+  bool     getPercentageFull(float &percentage);
+  float    getQLSB();
 
 
   //       STATUS & CONTROL
@@ -52,7 +68,7 @@ public:
   bool     getControl(uint8_t &control);
   //       control register per field     //  VALUES
   bool     setControl(uint8_t ALCC,       //  0..2
-                      uint8_t prescaler,  //  0..7
+                      uint8_t prescaler,  //  0..7 maps to 1,2,4,8,...128
                       uint8_t shutDown,   //  0..1
                       uint8_t batAlert);  //  0..3
   bool     getControl(uint8_t &ALCC,
@@ -61,24 +77,34 @@ public:
                       uint8_t &batAlert);
 
 
-  //       CHARGE
-  bool     setCharge(uint16_t charge);
-  bool     getCharge(uint16_t &charge);
-
   //       THRESHOLD
-  bool     setThresholdHigh(uint16_t th);
-  bool     getThresholdHigh(uint16_t &th);
-  bool     setThresholdLow(uint16_t th);
-  bool     getThresholdLow(uint16_t &th);
+  //       raw values have to be multiplied/divided by QLSB.
+  bool     setRawThresholdHigh(uint16_t th);
+  bool     getRawThresholdHigh(uint16_t &th);
+  bool     setRawThresholdLow(uint16_t th);
+  bool     getRawThresholdLow(uint16_t &th);
+  bool     setThresholdHigh(float th);
+  bool     getThresholdHigh(float &th);
+  bool     setThresholdLow(float th);
+  bool     getThresholdLow(float &th);
 
 
   //       DEBUG
   int      getLastError();
-
+  uint8_t  getPrescaler() { return _prescaler; };
 
 private:
   uint8_t  _address = 0x64;
   TwoWire* _wire;
+
+  //  datasheet page 4
+  float    _RSense    = 0.050f;  //  50 mOhm (page 4)
+  float    _mAh       = 0;       //  not initialized, aka Qbat
+  uint8_t  _prescaler = 128;     //  default POR (page 7)
+  //  _QLSB = 0.085f * 0.050f / _Rsense * _prescaler / 128;
+  float    _QLSB      = 0.085f;
+
+  void     _calculateQLSB();
 
   int      _write(uint8_t reg, uint8_t * arr, uint8_t size);
   int      _read(uint8_t reg, uint8_t * arr, uint8_t size);

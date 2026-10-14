@@ -26,13 +26,60 @@ LTC2941::LTC2941(TwoWire *wire)
   _wire = wire;
 }
 
-bool LTC2941::begin()
+bool LTC2941::begin(float mAh, float RSense)
 {
-  //  reset variables
-  _error = 0;
-  if (! isConnected())
+  //  TODO clean up and make no change if failed..
+
+  if (RSense < 0.005f)
   {
+    //  set error
     return false;
+  }
+
+  //  Page 9 Imax how about Imax?
+
+  if ((mAh < 100) || (mAh > 5500))  //  check limit
+  {
+    //  set error
+    return false;
+  }
+
+  //  Page 10, verify if RSense makes sense
+  if (RSense > ((0.085 * 0.050f * 65535) / mAh))
+  {
+    //  set error
+    return false;
+  }
+  //  Page 11, calculate pre-scaler
+  float tmp = 128 * mAh /(65535 * 0.085f) * (RSense / 0.050f);
+  uint8_t prescaler;
+  for (prescaler = 1; prescaler < 128; prescaler *= 2)
+  {
+    if (prescaler > tmp) break;
+  }
+  if (prescaler <= tmp)
+  {
+    //  error can't calculate prescaler.
+    return false;
+  }
+
+
+  //  ALL OK
+  //  so we can set the internals
+  _RSense = RSense;
+  _mAh = mAh;
+  _prescaler = prescaler;
+  //  calculate QLSB
+  _QLSB = (0.085f * 0.050f) / _RSense * (_prescaler * (1.0f / 128.0f));
+
+  //  TODO store the pre-scaler.
+
+  //  reset variables
+  _error = LTC2941_OK;
+  //  if (! isConnected())
+  {
+    //  set error.
+    //  return false;
   }
   return true;
 }
@@ -47,6 +94,56 @@ uint8_t LTC2941::getAddress()
 {
   return _address;
 }
+
+
+/////////////////////////////////////////////
+//
+//  CHARGE
+//
+bool LTC2941::setRawCharge(uint16_t raw)
+{
+  uint8_t value[2];
+  value[0] = raw >> 8;
+  value[1] = raw & 0xFF;
+  _write(LTC2941_REG_CHARGE_MSB, value, 2);
+  return (_error == LTC2941_OK);
+}
+
+bool LTC2941::getRawCharge(uint16_t &raw)
+{
+  uint8_t value[2] = {0, 0};
+  _read(LTC2941_REG_CHARGE_MSB, value, 2);
+  raw = (value[0] << 8) + value[1];
+  return (_error == LTC2941_OK);
+}
+
+bool LTC2941::setCharge(float charge)
+{
+  return setRawCharge(charge / _QLSB);
+}
+
+bool LTC2941::getCharge(float &charge)
+{
+  uint16_t raw = 0;
+  getRawCharge(raw);
+  charge = raw * _QLSB;
+  return (_error == LTC2941_OK);
+}
+
+bool LTC2941::getPercentageFull(float &percentage)
+{
+  float perc;
+  getCharge(perc);
+  percentage = (100.0 * perc) / _mAh;
+  return (_error == LTC2941_OK);
+}
+
+float LTC2941::getQLSB()
+{
+  return _QLSB;
+}
+
+
 
 
 /////////////////////////////////////////////
@@ -82,17 +179,22 @@ bool LTC2941::getControl(uint8_t &control)
   return (_error == LTC2941_OK);
 }
 
-
 bool LTC2941::setControl( uint8_t ALCC,
                           uint8_t prescaler,
                           uint8_t shutDown,
                           uint8_t batAlert)
 {
-  if ((ALCC > 2) || (shutDown > 1) || (batAlert > 3))
+  if ((ALCC > 2)     || (prescaler > 7) ||
+      (shutDown > 1) || (batAlert > 3))
   {
     _error = LTC2941_CONTROL_ERROR;
     return false;
   }
+  //  0..7 => 1..128
+  _prescaler = 1 << prescaler;
+
+  //  TODO redo QLSB.
+
   uint8_t control = shutDown | (ALCC << 1) | (prescaler << 3) | (batAlert << 6);
   return setControl(control);
 }
@@ -115,31 +217,9 @@ bool LTC2941::getControl( uint8_t &ALCC,
 
 /////////////////////////////////////////////
 //
-//  CHARGE
-//
-bool LTC2941::setCharge(uint16_t charge)
-{
-  uint8_t value[2];
-  value[0] = charge >> 8;
-  value[1] = charge & 0xFF;
-  _write(LTC2941_REG_CHARGE_MSB, value, 2);
-  return (_error == LTC2941_OK);
-}
-
-bool LTC2941::getCharge(uint16_t &charge)
-{
-  uint8_t value[2] = {0, 0};
-  _read(LTC2941_REG_CHARGE_MSB, value, 2);
-  charge = (value[0] << 8) + value[1];
-  return (_error == LTC2941_OK);
-}
-
-
-/////////////////////////////////////////////
-//
 //  THRESHOLD
 //
-bool LTC2941::setThresholdHigh(uint16_t th)
+bool LTC2941::setRawThresholdHigh(uint16_t th)
 {
   uint8_t value[2];
   value[0] = th >> 8;
@@ -148,7 +228,7 @@ bool LTC2941::setThresholdHigh(uint16_t th)
   return (_error == LTC2941_OK);
 }
 
-bool LTC2941::getThresholdHigh(uint16_t &th)
+bool LTC2941::getRawThresholdHigh(uint16_t &th)
 {
   uint8_t value[2];
   _read(LTC2941_REG_CHARGE_TH_HIGH_MSB, value, 2);
@@ -156,7 +236,7 @@ bool LTC2941::getThresholdHigh(uint16_t &th)
   return (_error == LTC2941_OK);
 }
 
-bool LTC2941::setThresholdLow(uint16_t th)
+bool LTC2941::setRawThresholdLow(uint16_t th)
 {
   uint8_t value[2];
   value[0] = th >> 8;
@@ -165,11 +245,37 @@ bool LTC2941::setThresholdLow(uint16_t th)
   return (_error == LTC2941_OK);
 }
 
-bool LTC2941::getThresholdLow(uint16_t &th)
+bool LTC2941::getRawThresholdLow(uint16_t &th)
 {
   uint8_t value[2];
   _read(LTC2941_REG_CHARGE_TH_LOW_MSB, value, 2);
   th = (value[0] << 8) + value[1];
+  return (_error == LTC2941_OK);
+}
+
+bool LTC2941::setThresholdHigh(float th)
+{
+  return setRawThresholdHigh(th / _QLSB);
+}
+
+bool LTC2941::getThresholdHigh(float &th)
+{
+  uint16_t raw = 0;
+  getRawThresholdHigh(raw);
+  th = raw * _QLSB;
+  return (_error == LTC2941_OK);
+}
+
+bool LTC2941::setThresholdLow(float th)
+{
+  return setRawThresholdLow(th / _QLSB);
+}
+
+bool LTC2941::getThresholdLow(float &th)
+{
+  uint16_t raw = 0;
+  getRawThresholdLow(raw);
+  th = raw * _QLSB;
   return (_error == LTC2941_OK);
 }
 
@@ -190,6 +296,14 @@ int LTC2941::getLastError()
 //
 //  PRIVATE
 //
+void LTC2941::_calculateQLSB()
+{
+  //  datasheet, page 4
+  //  0.085f = mAh,
+  //  0.050f is default RSense = 50 mOhm
+  _QLSB = (0.085f * 0.050f) / _RSense * (_prescaler * (1.0f / 128.0f));
+}
+
 int LTC2941::_write(uint8_t reg, uint8_t * arr, uint8_t size)
 {
   _wire->beginTransmission(_address);
