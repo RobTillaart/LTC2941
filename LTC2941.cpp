@@ -76,7 +76,7 @@ bool LTC2941::begin(float mAh, float RSense)
 
   //  reset variables
   _error = LTC2941_OK;
-  //  if (! isConnected())
+  //  if (! isConnected())  TODO
   {
     //  set error.
     //  return false;

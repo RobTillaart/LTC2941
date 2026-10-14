@@ -41,10 +41,10 @@ void setup()
   //  save old value to restore
   uint16_t val;
   uint16_t nval;
-  LTC.getCharge(val);
+  LTC.getRawCharge(val);
   val ^= 0xFFFF;
-  LTC.setCharge(val);
-  LTC.getCharge(nval);
+  LTC.setRawCharge(val);
+  LTC.getRawCharge(nval);
   if (nval != (val))
   {
     Serial.println("Error");
@@ -54,15 +54,15 @@ void setup()
     Serial.println("OK");
   }
   //  restore
-  LTC.setCharge(val ^ 0xFFFF);
+  LTC.setRawCharge(val ^ 0xFFFF);
 
 
   Serial.print("getThresholdHigh: \t");
   //  save old value to restore
-  LTC.getThresholdHigh(val);
+  LTC.getRawThresholdHigh(val);
   val ^= 0xFFFF;
-  LTC.setThresholdHigh(val);
-  LTC.getThresholdHigh(nval);
+  LTC.setRawThresholdHigh(val);
+  LTC.getRawThresholdHigh(nval);
   if (nval != val)
   {
     Serial.println("Error");
@@ -72,15 +72,15 @@ void setup()
     Serial.println("OK");
   }
   //  restore
-  LTC.setThresholdHigh(val ^ 0xFFFF);
+  LTC.setRawThresholdHigh(val ^ 0xFFFF);
 
 
   Serial.print("getThresholdLow: \t");
   //  save old value to restore
-  LTC.getThresholdLow(val);
+  LTC.getRawThresholdLow(val);
   val ^= 0xFFFF;
-  LTC.setThresholdLow(val);
-  LTC.getThresholdHigh(nval);
+  LTC.setRawThresholdLow(val);
+  LTC.getRawThresholdHigh(nval);
   if (nval != val)
   {
     Serial.println("Error");
@@ -90,7 +90,7 @@ void setup()
     Serial.println("OK");
   }
   //  restore
-  LTC.setThresholdLow(val ^ 0xFFFF);
+  LTC.setRawThresholdLow(val ^ 0xFFFF);
 
 
   Serial.println("\ndone");
