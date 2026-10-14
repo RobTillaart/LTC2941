@@ -20,7 +20,8 @@ void setup()
   Serial.println();
 
   Wire.begin();
-  bool b = LTC.begin();
+
+  bool b = LTC.begin(2000, 0.050);
   Serial.print("BEGIN:\t");
   Serial.println(b);
   Serial.print("ADDR:\t");
@@ -33,7 +34,7 @@ void setup()
 void loop()
 {
   uint16_t charge;
-  LTC.getCharge(charge);
+  LTC.getRawCharge(charge);
   uint8_t status;
   LTC.getStatus(status);
   uint8_t control;

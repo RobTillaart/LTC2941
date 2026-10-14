@@ -21,7 +21,7 @@ void setup()
 
   Wire.begin();
 
-  bool b = LTC.begin();
+  bool b = LTC.begin(2000, 0.050);
   Serial.print("BEGIN:\t");
   Serial.println(b);
   Serial.print("ADDR:\t");
@@ -33,7 +33,7 @@ void setup()
     Wire.setClock(speed);
     uint32_t start = micros();
     uint16_t charge;
-    LTC.getCharge(charge);
+    LTC.getRawCharge(charge);
     uint32_t stop = micros();
     Serial.print(speed);
     Serial.print("\t");

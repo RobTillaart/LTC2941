@@ -21,7 +21,7 @@ void setup()
 
   Wire.begin();
 
-  bool b = LTC.begin();
+  bool b = LTC.begin(2000, 0.050);
   Serial.print("BEGIN:\t");
   Serial.println(b);
   Serial.print("ADDR:\t");
