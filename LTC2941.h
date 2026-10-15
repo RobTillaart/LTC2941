@@ -91,7 +91,9 @@ public:
 
   //       DEBUG
   int      getLastError();
+  //  TODO keep?
   uint8_t  getPrescaler() { return _prescaler; };
+  float    getMaxCurrent() { return 0.050f / _RSense; };
 
 private:
   uint8_t  _address = 0x64;
@@ -101,7 +103,7 @@ private:
   float    _RSense    = 0.050f;  //  50 mOhm (page 4)
   float    _mAh       = 0;       //  not initialized, aka Qbat
   uint8_t  _prescaler = 128;     //  default POR (page 7)
-  //  _QLSB = 0.085f * 0.050f / _Rsense * _prescaler / 128;
+  //  _QLSB = 0.085f * 0.050f / _RSense * _prescaler / 128;
   float    _QLSB      = 0.085f;
 
   void     _calculateQLSB();

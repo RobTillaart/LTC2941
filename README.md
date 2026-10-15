@@ -193,9 +193,6 @@ compares with mAh parameter from begin().
 Conversion factor determined by RSense and mAh from **begin()**
 
 
-**BELOW THIS LINE IS WORK IN PROGRESS - NOT TESTED**
-
-
 ### Status and control
 
 See datasheet for details.
@@ -258,10 +255,11 @@ TODO elaborate
 
 - **int getLastError()** returns last error of low level communication.
 - **uint8_t getPrescaler()** idem
+- **float getMaxCurrent()** calculates the max current given RSense.
 
 
-|  value  |  error code  |
-|:-------:|:-------------|
+|  error  |  description  |
+|:-------:|:--------------|
 |   0x00  |  LTC2941_OK
 |   0x10  |  LTC2941_NOT_READY
 |   0x11  |  LTC2941_REQUEST_ERROR1
@@ -285,6 +283,7 @@ TODO elaborate
 
 #### Should
 
+- update LTC comparison table
 - investigate datasheet in detail
   - config support, based upon page 10-11
 
