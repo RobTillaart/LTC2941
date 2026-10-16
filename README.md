@@ -56,8 +56,13 @@ and any other applications that may cause personal injury due to the product's f
 
 ### Calibration
 
-Preliminary, to be tested.
+Read datasheet, page ??
 
+TODO elaborate.
+
+About calibration...
+- load accu full
+- setCharge(mAh)
 
 
 ### Hardware
@@ -81,8 +86,9 @@ The LTC2941 comes at least in two versions.
 Difference is the working temperature range.
 
 The LTC2942 is partial compatible.
+
 The LTC2943 and LTC2944 are a superset of the LTC2941 and are expected
-to work with this library. Use at own risk.
+to work with this library. This is not verified so use at your own risk.
 
 
 ### Related
@@ -148,14 +154,12 @@ Only test **getCharge()** as that is the main function.
 |:----------:|:-----------:|:--------|
 |   100 KHz  |             |  default
 |   200 KHz  |             |
-|   300 KHz  |             |
 |   400 KHz  |             |
 |   600 KHz  |             |
-|   800 KHz  |             |
 |   900 KHz  |             |  max datasheet
 
 
-TODO: implement and run performance sketch on hardware.
+TODO: run performance sketch on hardware.
 
 
 ## Interface
@@ -167,21 +171,27 @@ TODO: implement and run performance sketch on hardware.
 ### Constructor
 
 - **LTC2941(TwoWire \*wire = &Wire)** optional select I2C bus.
-- **bool begin(float mAh, float RSense = 0.050f)**
-tralala
+- **bool begin(float mAh, float RSense)**
+Sets the capacity of the battery and the used resistor.
+Verifies these are in range.
+Calculates the pre-scaler and the QLSB from these numbers
 Finally it checks if the device address is visible on the I2C bus.
 - **bool isConnected()** Checks if device address can be found on I2C bus.
 - **uint8_t getAddress()** Returns the fixed address 0x64 (100).
 
-Note: The user has to make sure that: ```RSense < 50mV / Imax```.
-The library does not check this.
+The user has to make sure that: ```RSense < 50mV / Imax```.
+The library does not check this, however getMaxCurrent() calculates
+the Imax given the resistor set in begin().
+
+The user has to make sure that ```RSense > 0.005 Ohm```
 
 
 ### Charge
 
-See datasheet page 10-11 for details.
+See datasheet page 10-11 for details, especially how to align
+the battery and the internal counter.
 
-Functions return false in case of an error.
+The functions return false in case of an error.
 
 - **bool setCharge(uint16_t charge)** raw register access.
 - **bool getCharge(uint16_t &charge)** raw register access.
@@ -192,14 +202,18 @@ compares with mAh parameter from begin().
 - **float getQLSB()** charge in mAh of single bit.
 Conversion factor determined by RSense and mAh from **begin()**
 
+Note: at any moment the user has to detect the battery is completely
+full (or empty) and set the appropriate charge in the device.
+The device has no means to know when the battery is full.
 
-### Status and control
+
+### Status
 
 See datasheet for details.
 
 - **bool getStatus(uint8_t &status)**
 
-Status byte, see datasheet.
+Status byte, see datasheet
 
 |  bit  |  description        |  notes  |
 |:-----:|:--------------------|:--------|
@@ -212,9 +226,10 @@ Status byte, see datasheet.
 |   6   |  not used, always 0 |
 |   7   |  chip ID, always 1  |  LTC2942 returns 0
 
+### Control register
 
-- **bool setControl(uint8_t control)**
-- **bool getControl(uint8_t &control)**
+See datasheet for details.
+
 - **bool setControl(uint8_t ALCC,  uint8_t prescaler,  uint8_t shutDown, uint8_t batAlert)**
 - **bool getControl(uint8_t &ALCC, uint8_t &prescaler, uint8_t &shutDown, uint8_t &batAlert)**
 
@@ -228,27 +243,23 @@ Control fields, see datasheet.
 |  6-7  |  battery alert      |   0..3  |
 
 
-### Calibrate
-
-TODO elaborate.
-
-About calibration...
-- load accu full
-- setCharge(x.y mAh)
-
-
 ### Thresholds
 
-TODO elaborate
+See datasheet for details.
+
+High threshold should be higher than low threshold, otherwise the
+device is always in alarm state.
 
 - **bool setRawThresholdHigh(uint16_t th)**
 - **bool getRawThresholdHigh(uint16_t &th)**
 - **bool setRawThresholdLow(uint16_t th)**
 - **bool getRawThresholdLow(uint16_t &th)**
-- **bool setThresholdHigh(float th);
-- **bool getThresholdHigh(float &th);
-- **bool setThresholdLow(float th);
-- **bool getThresholdLow(float &th);
+
+Same in Coulombs
+- **bool setThresholdHigh(float th)**
+- **bool getThresholdHigh(float &th)**
+- **bool setThresholdLow(float th)**
+- **bool getThresholdLow(float &th)**
 
 
 ### Debug
@@ -265,6 +276,10 @@ TODO elaborate
 |   0x11  |  LTC2941_REQUEST_ERROR1
 |   0x12  |  LTC2941_REQUEST_ERROR2
 |   0x13  |  LTC2941_CONTROL_ERROR
+|   0x14  |  LTC2941_RSENSE_ERROR
+|   0x15  |  LTC2941_MAH_ERROR
+|   0x16  |  LTC2941_PRESCALER_ERROR
+|   0xFF  |  LTC2941_OTHER_ERROR
 
 
 ## Future
@@ -273,19 +288,16 @@ TODO elaborate
 
 - improve documentation
   - how to calibrate (resistor, prescaler, ...)
+- fix TODO in documentation and code
 - get hardware to test
   - verify API
 - improve API
   - units of getCharge?
-  - configure battery capacity in mAh
-  - configure percentages full
-  - calibrate support
 
 #### Should
 
 - update LTC comparison table
-- investigate datasheet in detail
-  - config support, based upon page 10-11
+- configuration support, based upon page 10-11
 
 #### Could
 

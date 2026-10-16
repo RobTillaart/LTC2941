@@ -37,10 +37,19 @@ void loop()
   LTC.getRawCharge(charge);
   uint8_t status;
   LTC.getStatus(status);
-  uint8_t control;
-  LTC.getControl(control);
+  uint8_t alcc = 0;
+  uint8_t prescaler = 0;
+  uint8_t shutdown = 0;
+  uint8_t batAlert = 0;
+  LTC.getControl(alcc, prescaler, shutdown, batAlert);
 
-  Serial.print(control, HEX);
+  Serial.print(alcc);
+  Serial.print("\t");
+  Serial.print(prescaler);
+  Serial.print("\t");
+  Serial.print(shutdown);
+  Serial.print("\t");
+  Serial.print(batAlert);
   Serial.print("\t");
   Serial.print(status, HEX);
   Serial.print("\t");

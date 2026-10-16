@@ -28,29 +28,27 @@ LTC2941::LTC2941(TwoWire *wire)
 
 bool LTC2941::begin(float mAh, float RSense)
 {
-  //  TODO clean up and make no change if failed..
-
+  //  check parameters.
+  //  RSense, what is minimum allowed? Max current?
+  //  for now it should not be below 5 mOhm => maxCurrent = 10A.
   if (RSense < 0.005f)
   {
-    //  set error
+    _error = LTC2941_RSENSE_ERROR;
     return false;
   }
-
-  //  Page 9 Imax how about Imax?
-
-  if ((mAh < 100) || (mAh > 5500))  //  check limit
-  {
-    //  set error
-    return false;
-  }
-
   //  Page 10, verify if RSense makes sense
   if (RSense > ((0.085 * 0.050f * 65535) / mAh))
   {
-    //  set error
+    _error = LTC2941_RSENSE_ERROR;
     return false;
   }
-  //  Page 11, calculate pre-scaler
+  if ((mAh < 100) || (mAh > 5500))  //  check limit
+  {
+    _error = LTC2941_MAH_ERROR;
+    return false;
+  }
+
+  //  Page 11, calculate and verify pre-scaler
   float tmp = 128 * mAh /(65535 * 0.085f) * (RSense / 0.050f);
   uint8_t prescaler;
   for (prescaler = 1; prescaler < 128; prescaler *= 2)
@@ -59,29 +57,37 @@ bool LTC2941::begin(float mAh, float RSense)
   }
   if (prescaler <= tmp)
   {
-    //  error can't calculate prescaler.
+    _error = LTC2941_PRESCALER_ERROR;
     return false;
   }
 
+  // check connection
+  _error = LTC2941_OK;
+  if (! isConnected())
+  {
+    _error = LTC2941_NOT_READY;
+    return false;
+  }
 
-  //  ALL OK
-  //  so we can set the internals
+  //  ALL OK  ==> so we can set the internals
   _RSense = RSense;
   _mAh = mAh;
   _prescaler = prescaler;
-  //  calculate QLSB
-  _QLSB = (0.085f * 0.050f) / _RSense * (_prescaler * (1.0f / 128.0f));
+  _QLSB = _calculateQLSB();
 
-  //  TODO store the pre-scaler.
-
-  //  reset variables
-  _error = LTC2941_OK;
-  //  if (! isConnected())  TODO
+  //  write pre-scaler to device.
+  int ps;
+  for (ps = 0; ps < 8; ps++)
   {
-    //  set error.
-    //  return false;
+    if ((1 << ps) == _prescaler) break;
   }
-  return true;
+  uint8_t control = 0;   //  no error check here yet.
+  _getControl(control);  //  read current configuration
+  control &= 0xC7;       //  clear pre-scaler bits
+  control |= (ps << 3);  //  set pre-scaler bits
+  _setControl(control);  //  write new configuration
+
+  return _error == LTC2941_OK;
 }
 
 bool LTC2941::isConnected()
@@ -144,8 +150,6 @@ float LTC2941::getQLSB()
 }
 
 
-
-
 /////////////////////////////////////////////
 //
 //  STATUS & CONTROL
@@ -155,27 +159,6 @@ bool LTC2941::getStatus(uint8_t &status)
   uint8_t value;
   _read(LTC2941_REG_STATUS, &value, 1);
   status = value;
-  return (_error == LTC2941_OK);
-}
-
-bool LTC2941::setControl(uint8_t control)
-{
-  //  not allowed bit pattern. Page 9.
-  if (control & 0x06)
-  {
-    _error = LTC2941_CONTROL_ERROR;
-    return false;
-  }
-  uint8_t value = control;
-  _write(LTC2941_REG_CONTROL, &value, 1);
-  return (_error == LTC2941_OK);
-}
-
-bool LTC2941::getControl(uint8_t &control)
-{
-  uint8_t value;
-  _read(LTC2941_REG_CONTROL, &value, 1);
-  control = value;
   return (_error == LTC2941_OK);
 }
 
@@ -190,13 +173,12 @@ bool LTC2941::setControl( uint8_t ALCC,
     _error = LTC2941_CONTROL_ERROR;
     return false;
   }
-  //  0..7 => 1..128
+  //  0..7 ==> 1..128
   _prescaler = 1 << prescaler;
-
-  //  TODO redo QLSB.
+  _QLSB = _calculateQLSB();
 
   uint8_t control = shutDown | (ALCC << 1) | (prescaler << 3) | (batAlert << 6);
-  return setControl(control);
+  return _setControl(control);
 }
 
 
@@ -206,7 +188,10 @@ bool LTC2941::getControl( uint8_t &ALCC,
                           uint8_t &batAlert)
 {
   uint8_t control;
-  if (getControl(control) != LTC2941_OK) return false;
+  if (_getControl(control) != LTC2941_OK)
+  {
+    return false;
+  }
   shutDown  = control & 0x01;
   ALCC      = (control >> 1) & 0x03;
   prescaler = (control >> 3) & 0x07;
@@ -291,19 +276,52 @@ int LTC2941::getLastError()
   return e;
 }
 
+uint8_t LTC2941::getPrescaler()
+{
+  return _prescaler;
+}
+
+float LTC2941::getMaxCurrent()
+{
+  return 0.050f / _RSense;
+}
+
 
 ///////////////////////////////////////////////
 //
 //  PRIVATE
 //
-void LTC2941::_calculateQLSB()
+bool LTC2941::_setControl(uint8_t control)
+{
+  //  not allowed bit pattern. Page 9.
+  if (control & 0x06)
+  {
+    _error = LTC2941_CONTROL_ERROR;
+    return false;
+  }
+  _write(LTC2941_REG_CONTROL, &control, 1);
+  return (_error == LTC2941_OK);
+}
+
+bool LTC2941::_getControl(uint8_t &control)
+{
+  uint8_t value = 0;
+  _read(LTC2941_REG_CONTROL, &value, 1);
+  control = value;
+  return (_error == LTC2941_OK);
+}
+
+float LTC2941::_calculateQLSB()
 {
   //  datasheet, page 4
   //  0.085f = mAh,
   //  0.050f is default RSense = 50 mOhm
-  _QLSB = (0.085f * 0.050f) / _RSense * (_prescaler * (1.0f / 128.0f));
+  return (0.085f * 0.050f) / _RSense * (_prescaler * (1.0f / 128.0f));
 }
 
+//
+//  LOW LEVEL IO
+//
 int LTC2941::_write(uint8_t reg, uint8_t * arr, uint8_t size)
 {
   _wire->beginTransmission(_address);

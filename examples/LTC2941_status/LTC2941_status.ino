@@ -37,16 +37,12 @@ void loop()
   LTC.getRawCharge(charge);
   uint8_t status;
   LTC.getStatus(status);
-  uint8_t control;
-  LTC.getControl(control);
 
   Serial.print(charge);
   Serial.print("\t");
-  Serial.print(control, HEX);
-  Serial.print("\t");
   Serial.print(status, HEX);
   Serial.print("\t");
-  //  check all status fields, 
+  //  check all status fields,
   //  multiple alerts are possible
   if (status & LTC2941_ALERT_UNDERVOLTAGE) Serial.print("undervoltage\t");
   if (status & LTC2941_ALERT_BATTERY) Serial.print("battery\t");

@@ -39,11 +39,15 @@ unittest_teardown()
 
 unittest(test_constants_error)
 {
-  assertEqual(0x00, LTC2941_OK            );
-  assertEqual(0x10, LTC2941_NOT_READY     );
-  assertEqual(0x11, LTC2941_REQUEST_ERROR1);
-  assertEqual(0x12, LTC2941_REQUEST_ERROR2);
-  assertEqual(0x13, LTC2941_CONTROL_ERROR );
+  assertEqual(0x00, LTC2941_OK             );
+  assertEqual(0x10, LTC2941_NOT_READY      );
+  assertEqual(0x11, LTC2941_REQUEST_ERROR1 );
+  assertEqual(0x12, LTC2941_REQUEST_ERROR2 );
+  assertEqual(0x13, LTC2941_CONTROL_ERROR  );
+  assertEqual(0x14, LTC2941_RSENSE_ERROR   );
+  assertEqual(0x15, LTC2941_MAH_ERROR      );
+  assertEqual(0x16, LTC2941_PRESCALER_ERROR);
+  assertEqual(0xFF, LTC2941_OTHER_ERROR    );
 }
 
 

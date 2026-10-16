@@ -30,11 +30,20 @@ void setup()
   Serial.print("STAT \tCONTROL\n");
   uint8_t status;
   LTC.getStatus(status);
-  uint8_t control;
-  LTC.getControl(control);
+  uint8_t alcc = 0;
+  uint8_t prescaler = 0;
+  uint8_t shutdown = 0;
+  uint8_t batAlert = 0;
+  LTC.getControl(alcc, prescaler, shutdown, batAlert);
   Serial.print(status, HEX);
   Serial.print("\t");
-  Serial.println(control, HEX);
+  Serial.print(alcc);
+  Serial.print("\t");
+  Serial.print(prescaler);
+  Serial.print("\t");
+  Serial.print(shutdown);
+  Serial.print("\t");
+  Serial.println(batAlert);
 
 
   Serial.print("getCharge: \t");
