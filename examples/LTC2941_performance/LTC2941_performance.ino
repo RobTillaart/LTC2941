@@ -51,7 +51,7 @@ void setup()
     Wire.setClock(speed);
     uint32_t start = micros();
     float charge;
-    LTC.getRawCharge(charge);
+    LTC.getCharge(charge);
     uint32_t stop = micros();
     Serial.print(speed);
     Serial.print("\t");
