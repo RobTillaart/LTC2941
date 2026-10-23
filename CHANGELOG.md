@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 ## [0.1.1] - 2026-10-23
+- sync LTC2942/3/4 development
 - swap parameters in begin() to give RSense a default value
 - sync with LTC2942/43/44 developments
 - minor edits
